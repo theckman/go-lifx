@@ -9,6 +9,9 @@ import (
 // ProtocolHeaderByteSize is the number of bytes in a marshaled packet.
 const ProtocolHeaderByteSize int = 12
 
+// These values are for use in the Type field. They define the type of
+// message within the payload of the packet. This group of values are for
+// generic device messages.
 const (
 	DeviceGetService        uint16 = 2
 	DeviceStateService      uint16 = 3
@@ -39,6 +42,9 @@ const (
 	DeviceEchoResponse      uint16 = 59
 )
 
+// These values are for use in the Type field. They define the type of
+// message within the payload of the packet. This group of values are for
+// device messages specific to LIFX lightbulbs.
 const (
 	LightGet        uint16 = 101
 	LightSetColor   uint16 = 102
