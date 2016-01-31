@@ -14,7 +14,7 @@ import (
 func (t *TestSuite) Test_NewFrame(c *C) {
 	var f *Frame
 	f = NewFrame()
-	c.Assert(f, Not(IsNil))
+	c.Assert(f, NotNil)
 	c.Check(f.Origin, Equals, uint8(0))
 	c.Check(f.Addressable, Equals, true)
 	c.Check(f.Protocol, Equals, uint16(1024))
@@ -40,7 +40,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 
 	packet, err = frame.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameByteSize)
 
 	reader := bytes.NewReader(packet)
@@ -77,7 +77,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 
 	packet, err = frame.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameByteSize)
 
 	reader = bytes.NewReader(packet)

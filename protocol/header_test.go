@@ -51,7 +51,7 @@ func (*TestSuite) TestHeader_MarshalPacket(c *C) {
 
 	packet, err = header.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 
 	reader := bytes.NewReader(packet)
 
