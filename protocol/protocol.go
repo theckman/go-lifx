@@ -1,3 +1,16 @@
+// Copyright 2016 Tim Heckman. All rights reserved.
+// Use of this source code is governed by the BSD 3-Clause
+// license that can be found in the LICENSE file.
+
+// Package lifxprotocol is used for marshaling and unmarshaling different LIFX
+// protocol packets to and from the wire, respectively. This package is not
+// meant to be consumed by those wanting to interface with their LIFX devices
+// in Golang. This package is designed to be used by the LIFX Golang library
+// for communicating with devices. Users are meant to consume that package
+// (which unfortunately doesn't exist, yet).
+//
+// This package uses the lifpayloads sub-package to generate payloads for
+// the individual packets.
 package lifxprotocol
 
 import (
