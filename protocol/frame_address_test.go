@@ -14,7 +14,7 @@ import (
 func (t *TestSuite) Test_NewFrameAddress(c *C) {
 	var fa *FrameAddress
 	fa = NewFrameAddress()
-	c.Assert(fa, Not(IsNil))
+	c.Assert(fa, NotNil)
 }
 
 func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
@@ -37,7 +37,7 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 
 	packet, err = fraddr.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameAddressByteSize)
 
 	reader := bytes.NewReader(packet)
@@ -80,7 +80,7 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 
 	packet, err = fraddr.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameAddressByteSize)
 
 	reader = bytes.NewReader(packet)

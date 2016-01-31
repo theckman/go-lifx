@@ -24,7 +24,7 @@ func (*TestSuite) TestDeviceStateService_MarshalPacket(c *C) {
 
 	packet, err = dss.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, 5)
 
 	reader := bytes.NewReader(packet)
@@ -67,7 +67,7 @@ func (*TestSuite) TestDeviceStateHostInfo_MarshalPacket(c *C) {
 
 	packet, err = dshi.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, 14)
 
 	reader := bytes.NewReader(packet)
@@ -119,7 +119,7 @@ func (*TestSuite) TestDeviceStateHostFirmware_MarshalPacket(c *C) {
 
 	packet, err = dshf.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, 20)
 
 	reader := bytes.NewReader(packet)
@@ -168,7 +168,7 @@ func (*TestSuite) TestDeviceStateWifiInfo_MarshalPacket(c *C) {
 
 	packet, err = dswi.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, 14)
 
 	reader := bytes.NewReader(packet)
@@ -220,7 +220,7 @@ func (*TestSuite) TestDeviceStateWifiFirmware_MarshalPacket(c *C) {
 
 	packet, err = dswf.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, 20)
 
 	reader := bytes.NewReader(packet)

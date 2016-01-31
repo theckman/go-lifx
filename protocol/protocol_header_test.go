@@ -67,7 +67,7 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 
 	packet, err = ph.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, ProtocolHeaderByteSize)
 
 	reader := bytes.NewReader(packet)
@@ -98,7 +98,7 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 
 	packet, err = ph.MarshalPacket(binary.LittleEndian)
 	c.Assert(err, IsNil)
-	c.Assert(packet, Not(IsNil))
+	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, ProtocolHeaderByteSize)
 
 	reader = bytes.NewReader(packet)
