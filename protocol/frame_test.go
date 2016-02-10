@@ -38,7 +38,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 		Source:      42,
 	}
 
-	packet, err = frame.MarshalPacket(binary.LittleEndian)
+	packet, err = frame.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameByteSize)
@@ -46,12 +46,12 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	reader := bytes.NewReader(packet)
 
 	// Read the size field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(8))
 
 	// Read the middle fields that are joined together
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(uint8(u16>>14), Equals, uint8(2)) // Origin
 	c.Check(u16>>13&1, Equals, uint16(1))     // Tagged
@@ -59,7 +59,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	c.Check(u16<<4>>4, Equals, uint16(1024))  // Protocol
 
 	// Read the Source field
-	err = binary.Read(reader, binary.LittleEndian, &u32)
+	err = binary.Read(reader, t.order, &u32)
 	c.Assert(err, IsNil)
 	c.Check(u32, Equals, uint32(42))
 
@@ -75,7 +75,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 		Source:      4242,
 	}
 
-	packet, err = frame.MarshalPacket(binary.LittleEndian)
+	packet, err = frame.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameByteSize)
@@ -83,12 +83,12 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	reader = bytes.NewReader(packet)
 
 	// Read the size field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(10))
 
 	// Read the middle fields that are joined together
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(uint8(u16>>14), Equals, uint8(0)) // Origin
 	c.Check(u16>>13&1, Equals, uint16(0))     // Tagged
@@ -96,7 +96,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	c.Check(u16<<4>>4, Equals, uint16(4095))  // Protocol
 
 	// Read the Source field
-	err = binary.Read(reader, binary.LittleEndian, &u32)
+	err = binary.Read(reader, t.order, &u32)
 	c.Assert(err, IsNil)
 	c.Check(u32, Equals, uint32(4242))
 
@@ -112,7 +112,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 		Source:      42,
 	}
 
-	packet, err = frame.MarshalPacket(binary.LittleEndian)
+	packet, err = frame.MarshalPacket(t.order)
 	c.Check(err, Equals, ErrFrameOriginOverflow)
 	c.Check(packet, IsNil)
 
@@ -128,7 +128,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 		Source:      42,
 	}
 
-	packet, err = frame.MarshalPacket(binary.LittleEndian)
+	packet, err = frame.MarshalPacket(t.order)
 	c.Check(err, Equals, ErrFrameProtocolOverflow)
 	c.Check(packet, IsNil)
 }
@@ -147,16 +147,16 @@ func (t *TestSuite) TestFrame_UnmarshalPacket(c *C) {
 		protocol<<4>>4
 
 	buf := new(bytes.Buffer)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(8)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, u16), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint32(42)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(8)), IsNil)
+	c.Assert(binary.Write(buf, t.order, u16), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint32(42)), IsNil)
 
 	//
 	// Test that Unmarshaling works
 	//
 	frame := &Frame{}
 
-	err = frame.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = frame.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 
 	c.Check(frame.Size, Equals, uint16(8))
@@ -177,16 +177,16 @@ func (t *TestSuite) TestFrame_UnmarshalPacket(c *C) {
 		protocol<<4>>4
 
 	buf = new(bytes.Buffer)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(10)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, u16), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint32(4242)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(10)), IsNil)
+	c.Assert(binary.Write(buf, t.order, u16), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint32(4242)), IsNil)
 
 	//
 	// Test that Unmarshaling works with some adjusted fields
 	//
 	frame = &Frame{}
 
-	err = frame.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = frame.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 
 	c.Check(frame.Size, Equals, uint16(10))

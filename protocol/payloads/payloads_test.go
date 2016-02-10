@@ -5,13 +5,20 @@
 package lifxpayloads
 
 import (
+	"encoding/binary"
 	"testing"
 
 	. "gopkg.in/check.v1"
 )
 
-type TestSuite struct{}
+type TestSuite struct {
+	order binary.ByteOrder
+}
 
 var _ = Suite(&TestSuite{})
 
 func Test(t *testing.T) { TestingT(t) }
+
+func (t *TestSuite) SetUpSuite(c *C) {
+	t.order = binary.LittleEndian
+}

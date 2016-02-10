@@ -35,7 +35,7 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 		Sequence:      42,
 	}
 
-	packet, err = fraddr.MarshalPacket(binary.LittleEndian)
+	packet, err = fraddr.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameAddressByteSize)
@@ -43,26 +43,26 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 	reader := bytes.NewReader(packet)
 
 	// Read the target field
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(0))
 
 	// Read the 6 reserved uint8 blocks
 	for i := 0; i < 6; i++ {
-		err = binary.Read(reader, binary.LittleEndian, &u8)
+		err = binary.Read(reader, t.order, &u8)
 		c.Assert(err, IsNil)
 		c.Check(u8, Equals, uint8(0))
 	}
 
 	// Read the single uint8 reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8>>2, Equals, uint8(10))
 	c.Check(u8>>1&1, Equals, uint8(0))
 	c.Check(u8&1, Equals, uint8(1))
 
 	// Read the sequence field
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8, Equals, uint8(42))
 
@@ -78,7 +78,7 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 		Sequence:      22,
 	}
 
-	packet, err = fraddr.MarshalPacket(binary.LittleEndian)
+	packet, err = fraddr.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Check(len(packet), Equals, FrameAddressByteSize)
@@ -86,26 +86,26 @@ func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {
 	reader = bytes.NewReader(packet)
 
 	// Read the target field
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(2351197419751440384))
 
 	// Read the 6 reserved uint8 blocks
 	for i := 0; i < 6; i++ {
-		err = binary.Read(reader, binary.LittleEndian, &u8)
+		err = binary.Read(reader, t.order, &u8)
 		c.Assert(err, IsNil)
 		c.Check(u8, Equals, uint8(i+1))
 	}
 
 	// Read the single uint8 reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8>>2, Equals, uint8(11))
 	c.Check(u8>>1&1, Equals, uint8(1))
 	c.Check(u8&1, Equals, uint8(0))
 
 	// Read the sequence field
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8, Equals, uint8(22))
 }
@@ -124,19 +124,19 @@ func (t *TestSuite) TestFrameAddress_UnmarshalPacket(c *C) {
 		uint64(50)<<23 |
 		uint64(51)<<15
 
-	err = binary.Write(buf, binary.LittleEndian, u64)
+	err = binary.Write(buf, t.order, u64)
 	c.Assert(err, IsNil)
 
 	for i := 0; i < 6; i++ {
-		err = binary.Write(buf, binary.LittleEndian, uint8(i))
+		err = binary.Write(buf, t.order, uint8(i))
 		c.Assert(err, IsNil)
 	}
 
 	u8 = 20<<2 | 1<<1 | 1&1
-	err = binary.Write(buf, binary.LittleEndian, u8)
+	err = binary.Write(buf, t.order, u8)
 	c.Assert(err, IsNil)
 
-	err = binary.Write(buf, binary.LittleEndian, uint8(42))
+	err = binary.Write(buf, t.order, uint8(42))
 	c.Assert(err, IsNil)
 
 	//
@@ -144,7 +144,7 @@ func (t *TestSuite) TestFrameAddress_UnmarshalPacket(c *C) {
 	//
 	fra := &FrameAddress{}
 
-	err = fra.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = fra.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 	c.Assert(len(fra.Target), Equals, 6)
 	c.Check(fra.Target[0], Equals, byte(65))
@@ -173,19 +173,19 @@ func (t *TestSuite) TestFrameAddress_UnmarshalPacket(c *C) {
 		uint64(50)<<23 |
 		uint64(51)<<15
 
-	err = binary.Write(buf, binary.LittleEndian, u64)
+	err = binary.Write(buf, t.order, u64)
 	c.Assert(err, IsNil)
 
 	for i := 0; i < 6; i++ {
-		err = binary.Write(buf, binary.LittleEndian, uint8(i+1))
+		err = binary.Write(buf, t.order, uint8(i+1))
 		c.Assert(err, IsNil)
 	}
 
 	u8 = 20<<2 | 0<<1 | 0&1
-	err = binary.Write(buf, binary.LittleEndian, u8)
+	err = binary.Write(buf, t.order, u8)
 	c.Assert(err, IsNil)
 
-	err = binary.Write(buf, binary.LittleEndian, uint8(42))
+	err = binary.Write(buf, t.order, uint8(42))
 	c.Assert(err, IsNil)
 
 	//
@@ -193,7 +193,7 @@ func (t *TestSuite) TestFrameAddress_UnmarshalPacket(c *C) {
 	//
 	fra = &FrameAddress{}
 
-	err = fra.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = fra.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 	c.Assert(len(fra.Target), Equals, 6)
 	c.Check(fra.Target[0], Equals, byte(65))

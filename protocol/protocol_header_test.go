@@ -11,7 +11,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-func (*TestSuite) TestProtocolHeaderDeviceTypes(c *C) {
+func (t *TestSuite) TestProtocolHeaderDeviceTypes(c *C) {
 	c.Check(DeviceGetService, Equals, uint16(2))
 	c.Check(DeviceStateService, Equals, uint16(3))
 	c.Check(DeviceGetHostInfo, Equals, uint16(12))
@@ -41,7 +41,7 @@ func (*TestSuite) TestProtocolHeaderDeviceTypes(c *C) {
 	c.Check(DeviceEchoResponse, Equals, uint16(59))
 }
 
-func (*TestSuite) TestProtocolHeaderLightTypes(c *C) {
+func (t *TestSuite) TestProtocolHeaderLightTypes(c *C) {
 	c.Check(LightGet, Equals, uint16(101))
 	c.Check(LightSetColor, Equals, uint16(102))
 	c.Check(LightState, Equals, uint16(107))
@@ -50,7 +50,7 @@ func (*TestSuite) TestProtocolHeaderLightTypes(c *C) {
 	c.Check(LightStatePower, Equals, uint16(118))
 }
 
-func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
+func (t *TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 	var packet []byte
 	var err error
 	var u64 uint64
@@ -65,7 +65,7 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 		ReservedEnd: 3,
 	}
 
-	packet, err = ph.MarshalPacket(binary.LittleEndian)
+	packet, err = ph.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, ProtocolHeaderByteSize)
@@ -73,17 +73,17 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 	reader := bytes.NewReader(packet)
 
 	// read the first reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(1))
 
 	// read the type field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(2))
 
 	// read the second reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(3))
 
@@ -96,7 +96,7 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 		ReservedEnd: 3000,
 	}
 
-	packet, err = ph.MarshalPacket(binary.LittleEndian)
+	packet, err = ph.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 	c.Assert(len(packet), Equals, ProtocolHeaderByteSize)
@@ -104,51 +104,51 @@ func (*TestSuite) TestProtocolHeader_MarshalPacket(c *C) {
 	reader = bytes.NewReader(packet)
 
 	// read the first reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(100))
 
 	// read the type field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(42))
 
 	// read the second reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(3000))
 }
 
-func (*TestSuite) TestProtocolHeader_UnmarshalPacket(c *C) {
+func (t *TestSuite) TestProtocolHeader_UnmarshalPacket(c *C) {
 	var err error
 
 	buf := &bytes.Buffer{}
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(3)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(1)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(2)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(3)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(1)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(2)), IsNil)
 
 	//
 	// Test that Unmarshaling works
 	//
 	ph := &ProtocolHeader{}
 
-	err = ph.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = ph.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 	c.Check(ph.Reserved, Equals, uint64(3))
 	c.Check(ph.Type, Equals, uint16(1))
 	c.Check(ph.ReservedEnd, Equals, uint16(2))
 
 	buf.Reset()
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(42)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(84)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(9001)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(42)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(84)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(9001)), IsNil)
 
 	//
 	// Test that Unmarshaling works with different inputs
 	//
 	ph = &ProtocolHeader{}
 
-	err = ph.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = ph.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 	c.Check(ph.Reserved, Equals, uint64(42))
 	c.Check(ph.Type, Equals, uint16(84))
