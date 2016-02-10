@@ -8,6 +8,63 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+func (*TestSuite) TestLightHSBK_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u16 uint16
+
+	order := binary.LittleEndian
+
+	hsbk := &LightHSBK{
+		Hue:        1,
+		Saturation: 2,
+		Brightness: 3,
+		Kelvin:     4,
+	}
+
+	packet, err = hsbk.MarshalPacket(order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Hue
+	c.Assert(binary.Read(reader, order, &u16), IsNil)
+	c.Check(u16, Equals, uint16(1))
+
+	// Saturation
+	c.Assert(binary.Read(reader, order, &u16), IsNil)
+	c.Check(u16, Equals, uint16(2))
+
+	// Brightness
+	c.Assert(binary.Read(reader, order, &u16), IsNil)
+	c.Check(u16, Equals, uint16(3))
+
+	// Kelvin
+	c.Assert(binary.Read(reader, order, &u16), IsNil)
+	c.Check(u16, Equals, uint16(4))
+}
+
+func (*TestSuite) TestLightHSBK_UnmarshalPacket(c *C) {
+	var err error
+	order := binary.LittleEndian
+	buf := &bytes.Buffer{}
+
+	c.Assert(binary.Write(buf, order, uint16(22)), IsNil) // Color.Hue
+	c.Assert(binary.Write(buf, order, uint16(33)), IsNil) // Color.Saturation
+	c.Assert(binary.Write(buf, order, uint16(44)), IsNil) // Color.Brightness
+	c.Assert(binary.Write(buf, order, uint16(55)), IsNil) // Color.Kelvin
+
+	hsbk := &LightHSBK{}
+
+	err = hsbk.UnmarshalPacket(bytes.NewReader(buf.Bytes()), order)
+	c.Assert(err, IsNil)
+	c.Check(hsbk.Hue, Equals, uint16(22))
+	c.Check(hsbk.Saturation, Equals, uint16(33))
+	c.Check(hsbk.Brightness, Equals, uint16(44))
+	c.Check(hsbk.Kelvin, Equals, uint16(55))
+}
+
 func (*TestSuite) TestLightSetColor_MarshalPacket(c *C) {
 	var packet []byte
 	var err error

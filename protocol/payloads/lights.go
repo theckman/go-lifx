@@ -41,6 +41,52 @@ type LightHSBK struct {
 	Kelvin uint16
 }
 
+// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// interface.
+func (hsbk *LightHSBK) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
+	buf := &bytes.Buffer{}
+
+	if err := binary.Write(buf, order, hsbk.Hue); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(buf, order, hsbk.Saturation); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(buf, order, hsbk.Brightness); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(buf, order, hsbk.Kelvin); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// interface.
+func (hsbk *LightHSBK) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
+	if err = binary.Read(data, order, &hsbk.Hue); err != nil {
+		return
+	}
+
+	if err = binary.Read(data, order, &hsbk.Saturation); err != nil {
+		return
+	}
+
+	if err = binary.Read(data, order, &hsbk.Brightness); err != nil {
+		return
+	}
+
+	if err = binary.Read(data, order, &hsbk.Kelvin); err != nil {
+		return
+	}
+
+	return
+}
+
 // LightSetColor is the struct representing the payload sent by a client
 // to change the light state.
 //
@@ -77,19 +123,13 @@ func (lsc *LightSetColor) MarshalPacket(order binary.ByteOrder) ([]byte, error) 
 		return nil, err
 	}
 
-	if err := binary.Write(buf, order, lsc.Color.Hue); err != nil {
+	colorPacket, err := lsc.Color.MarshalPacket(order)
+
+	if err != nil {
 		return nil, err
 	}
 
-	if err := binary.Write(buf, order, lsc.Color.Saturation); err != nil {
-		return nil, err
-	}
-
-	if err := binary.Write(buf, order, lsc.Color.Brightness); err != nil {
-		return nil, err
-	}
-
-	if err := binary.Write(buf, order, lsc.Color.Kelvin); err != nil {
+	if _, err := buf.Write(colorPacket); err != nil {
 		return nil, err
 	}
 
@@ -111,19 +151,7 @@ func (lsc *LightSetColor) UnmarshalPacket(data io.Reader, order binary.ByteOrder
 		lsc.Color = &LightHSBK{}
 	}
 
-	if err = binary.Read(data, order, &lsc.Color.Hue); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &lsc.Color.Saturation); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &lsc.Color.Brightness); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &lsc.Color.Kelvin); err != nil {
+	if err = lsc.Color.UnmarshalPacket(data, order); err != nil {
 		return
 	}
 
@@ -162,19 +190,13 @@ func (ls *LightState) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 
 	buf := &bytes.Buffer{}
 
-	if err := binary.Write(buf, order, ls.Color.Hue); err != nil {
+	colorPacket, err := ls.Color.MarshalPacket(order)
+
+	if err != nil {
 		return nil, err
 	}
 
-	if err := binary.Write(buf, order, ls.Color.Saturation); err != nil {
-		return nil, err
-	}
-
-	if err := binary.Write(buf, order, ls.Color.Brightness); err != nil {
-		return nil, err
-	}
-
-	if err := binary.Write(buf, order, ls.Color.Kelvin); err != nil {
+	if _, err := buf.Write(colorPacket); err != nil {
 		return nil, err
 	}
 
@@ -206,19 +228,7 @@ func (ls *LightState) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (e
 		ls.Color = &LightHSBK{}
 	}
 
-	if err = binary.Read(data, order, &ls.Color.Hue); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &ls.Color.Saturation); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &ls.Color.Brightness); err != nil {
-		return
-	}
-
-	if err = binary.Read(data, order, &ls.Color.Kelvin); err != nil {
+	if err = ls.Color.UnmarshalPacket(data, order); err != nil {
 		return
 	}
 
