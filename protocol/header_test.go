@@ -11,7 +11,7 @@ import (
 	. "gopkg.in/check.v1"
 )
 
-func (*TestSuite) TestHeader_MarshalPacket(c *C) {
+func (t *TestSuite) TestHeader_MarshalPacket(c *C) {
 	var packet []byte
 	var err error
 	var u64 uint64
@@ -49,19 +49,19 @@ func (*TestSuite) TestHeader_MarshalPacket(c *C) {
 		ProtocolHeader: ph,
 	}
 
-	packet, err = header.MarshalPacket(binary.LittleEndian)
+	packet, err = header.MarshalPacket(t.order)
 	c.Assert(err, IsNil)
 	c.Assert(packet, NotNil)
 
 	reader := bytes.NewReader(packet)
 
 	// Read the size field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(8))
 
 	// Read the middle fields that are joined together
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(uint8(u16>>14), Equals, uint8(2)) // Origin
 	c.Check(u16>>13&1, Equals, uint16(1))     // Tagged
@@ -69,51 +69,51 @@ func (*TestSuite) TestHeader_MarshalPacket(c *C) {
 	c.Check(u16<<4>>4, Equals, uint16(1024))  // Protocol
 
 	// Read the Source field
-	err = binary.Read(reader, binary.LittleEndian, &u32)
+	err = binary.Read(reader, t.order, &u32)
 	c.Assert(err, IsNil)
 	c.Check(u32, Equals, uint32(42))
 
 	// Read the target field
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(0))
 
 	// Read the 6 reserved uint8 blocks
 	for i := 0; i < 6; i++ {
-		err = binary.Read(reader, binary.LittleEndian, &u8)
+		err = binary.Read(reader, t.order, &u8)
 		c.Assert(err, IsNil)
 		c.Check(u8, Equals, uint8(0))
 	}
 
 	// Read the single uint8 reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8>>2, Equals, uint8(10))
 	c.Check(u8>>1&1, Equals, uint8(0))
 	c.Check(u8&1, Equals, uint8(1))
 
 	// Read the sequence field
-	err = binary.Read(reader, binary.LittleEndian, &u8)
+	err = binary.Read(reader, t.order, &u8)
 	c.Assert(err, IsNil)
 	c.Check(u8, Equals, uint8(42))
 
 	// read the first reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u64)
+	err = binary.Read(reader, t.order, &u64)
 	c.Assert(err, IsNil)
 	c.Check(u64, Equals, uint64(1))
 
 	// read the type field
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(2))
 
 	// read the second reserved block
-	err = binary.Read(reader, binary.LittleEndian, &u16)
+	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
 	c.Check(u16, Equals, uint16(3))
 }
 
-func (*TestSuite) TestHeader_UnmarshalPacket(c *C) {
+func (t *TestSuite) TestHeader_UnmarshalPacket(c *C) {
 	var err error
 	var u64 uint64
 	var u8 uint8
@@ -129,9 +129,9 @@ func (*TestSuite) TestHeader_UnmarshalPacket(c *C) {
 		protocol<<4>>4
 
 	buf := &bytes.Buffer{}
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(8)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, u16), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint32(42)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(8)), IsNil)
+	c.Assert(binary.Write(buf, t.order, u16), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint32(42)), IsNil)
 
 	u64 = uint64(65)<<55 |
 		uint64(66)<<47 |
@@ -140,18 +140,18 @@ func (*TestSuite) TestHeader_UnmarshalPacket(c *C) {
 		uint64(50)<<23 |
 		uint64(51)<<15
 
-	c.Assert(binary.Write(buf, binary.LittleEndian, u64), IsNil)
+	c.Assert(binary.Write(buf, t.order, u64), IsNil)
 
 	for i := 0; i < 6; i++ {
-		c.Assert(binary.Write(buf, binary.LittleEndian, uint8(i)), IsNil)
+		c.Assert(binary.Write(buf, t.order, uint8(i)), IsNil)
 	}
 
 	u8 = 20<<2 | 1<<1 | 1&1
-	c.Assert(binary.Write(buf, binary.LittleEndian, u8), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint8(42)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(3)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint16(1)), IsNil)
-	c.Assert(binary.Write(buf, binary.LittleEndian, uint64(2)), IsNil)
+	c.Assert(binary.Write(buf, t.order, u8), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint8(42)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(3)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint16(1)), IsNil)
+	c.Assert(binary.Write(buf, t.order, uint64(2)), IsNil)
 
 	frame := &Frame{}
 	fra := &FrameAddress{}
@@ -163,7 +163,7 @@ func (*TestSuite) TestHeader_UnmarshalPacket(c *C) {
 		ProtocolHeader: ph,
 	}
 
-	err = header.UnmarshalPacket(bytes.NewReader(buf.Bytes()), binary.LittleEndian)
+	err = header.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
 	c.Assert(err, IsNil)
 
 	c.Check(frame.Size, Equals, uint16(8))
