@@ -176,7 +176,7 @@ type LightState struct {
 	Power uint16
 
 	// Label is the user-identifiable name for the device.
-	Label [32]byte
+	Label DeviceLabel
 
 	ReservedB uint64
 }

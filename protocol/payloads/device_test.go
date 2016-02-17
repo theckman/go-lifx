@@ -11,6 +11,109 @@ import (
 	. "gopkg.in/check.v1"
 )
 
+func (*TestSuite) TestNewDeviceLabel(c *C) {
+	var dl DeviceLabel
+	var err error
+
+	//
+	// Test that setting a slice works
+	//
+	data := []byte("ohai there")
+	dl, err = NewDeviceLabel(data)
+	c.Assert(err, IsNil)
+
+	label := string(dl[0:])
+	c.Check(len(label), Equals, 32)
+	c.Check(label, Equals, "ohai there\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+	//
+	// Test that setting a long slice works
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345")
+	dl, err = NewDeviceLabel(data)
+	c.Assert(err, IsNil)
+
+	label = string(dl[0:])
+	c.Check(len(label), Equals, 32)
+	c.Check(label, Equals, "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345")
+
+	//
+	// Test that too long of a slice fails
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456")
+	dl, err = NewDeviceLabel(data)
+	c.Assert(err, NotNil)
+	c.Check(err.Error(), Equals, "the slice cannot be larger than 32 bytes")
+}
+
+func (*TestSuite) TestNewDeviceLabelTrunc(c *C) {
+	var dl DeviceLabel
+
+	//
+	// Test that setting a slice works
+	//
+	data := []byte("ohai there")
+	dl = NewDeviceLabelTrunc(data)
+
+	label := string(dl[0:])
+	c.Check(len(label), Equals, 32)
+	c.Check(label, Equals, "ohai there\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+	//
+	// Test that setting a long slice works
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ012345")
+	dl = NewDeviceLabelTrunc(data)
+
+	label = string(dl[0:])
+	c.Check(len(label), Equals, 32)
+	c.Check(label, Equals, "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345")
+
+	//
+	// Test that too long of a slice truncates
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456")
+	dl = NewDeviceLabelTrunc(data)
+
+	label = string(dl[0:])
+	c.Check(len(label), Equals, 32)
+	c.Check(label, Equals, "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345")
+}
+
+func (*TestSuite) TestNewDeviceEchoPayloadTrunc(c *C) {
+	var dep DeviceEchoPayload
+
+	//
+	// Test that setting a slice works
+	//
+	data := []byte("ohai there")
+	dep = NewDeviceEchoPayloadTrunc(data)
+
+	label := string(dep[0:])
+	c.Check(len(label), Equals, 64)
+	c.Check(label, Equals, "ohai there\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+
+	//
+	// Test that setting a long slice works
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+	dep = NewDeviceEchoPayloadTrunc(data)
+
+	label = string(dep[0:])
+	c.Check(len(label), Equals, 64)
+	c.Check(label, Equals, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+
+	//
+	// Test that too long of a slice truncates
+	//
+	data = []byte("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_^")
+	dep = NewDeviceEchoPayloadTrunc(data)
+
+	label = string(dep[0:])
+	c.Check(len(label), Equals, 64)
+	c.Check(label, Equals, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_")
+}
+
 func (t *TestSuite) TestDeviceStateService_MarshalPacket(c *C) {
 	var packet []byte
 	var err error
@@ -251,4 +354,372 @@ func (t *TestSuite) TestDeviceStateWifiFirmware_UnmarshalPacket(c *C) {
 	c.Check(dswf.Build, Equals, uint64(42))
 	c.Check(dswf.Reserved, Equals, uint64(84))
 	c.Check(dswf.Version, Equals, uint32(99))
+}
+
+func (t *TestSuite) TestDeviceStatePower_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u16 uint16
+
+	dsp := &DeviceStatePower{Level: 42}
+
+	packet, err = dsp.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Level
+	c.Assert(binary.Read(reader, t.order, &u16), IsNil)
+	c.Check(u16, Equals, uint16(42))
+}
+
+func (t *TestSuite) TestDeviceStatePower_UnmarshalPacket(c *C) {
+	buf := &bytes.Buffer{}
+
+	// Level
+	c.Assert(binary.Write(buf, t.order, uint16(33)), IsNil)
+
+	dsp := &DeviceStatePower{}
+
+	c.Assert(dsp.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order), IsNil)
+	c.Check(dsp.Level, Equals, uint16(33))
+}
+
+func (t *TestSuite) TestDeviceStateLabel_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u8 uint8
+
+	label := make([]byte, 32)
+
+	for i := 0; i < len(label); i++ {
+		label[i] = uint8(i + 100)
+	}
+
+	dsl := &DeviceStateLabel{Label: NewDeviceLabelTrunc(label)}
+
+	packet, err = dsl.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+100))
+	}
+
+}
+
+func (t *TestSuite) TestDeviceStateLabel_UnmarshalPacket(c *C) {
+	var err error
+	buf := &bytes.Buffer{}
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+100)), IsNil)
+	}
+
+	dsl := &DeviceStateLabel{}
+
+	err = dsl.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
+	c.Assert(err, IsNil)
+
+	for i := 0; i < 32; i++ {
+		c.Check(dsl.Label[i], Equals, uint8(i+100))
+	}
+}
+
+func (t *TestSuite) TestDeviceStateVersion_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u32 uint32
+
+	dsv := &DeviceStateVersion{
+		Vendor:  42,
+		Product: 1,
+		Version: 2,
+	}
+
+	packet, err = dsv.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Vendor
+	c.Assert(binary.Read(reader, t.order, &u32), IsNil)
+	c.Check(u32, Equals, uint32(42))
+
+	// Product
+	c.Assert(binary.Read(reader, t.order, &u32), IsNil)
+	c.Check(u32, Equals, uint32(1))
+
+	// Version
+	c.Assert(binary.Read(reader, t.order, &u32), IsNil)
+	c.Check(u32, Equals, uint32(2))
+}
+
+func (t *TestSuite) TestDeviceStateVersion_UnmarshalPacket(c *C) {
+	buf := &bytes.Buffer{}
+
+	c.Assert(binary.Write(buf, t.order, uint32(84)), IsNil) // Vendor
+	c.Assert(binary.Write(buf, t.order, uint32(10)), IsNil) // Product
+	c.Assert(binary.Write(buf, t.order, uint32(42)), IsNil) // Version
+
+	dsv := &DeviceStateVersion{}
+
+	c.Assert(dsv.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order), IsNil)
+	c.Check(dsv.Vendor, Equals, uint32(84))
+	c.Check(dsv.Product, Equals, uint32(10))
+	c.Check(dsv.Version, Equals, uint32(42))
+}
+
+func (t *TestSuite) TestDeviceStateInfo_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u64 uint64
+
+	dsi := &DeviceStateInfo{
+		Time:     42,
+		Uptime:   1,
+		Downtime: 2,
+	}
+
+	packet, err = dsi.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Time
+	c.Assert(binary.Read(reader, t.order, &u64), IsNil)
+	c.Check(u64, Equals, uint64(42))
+
+	// Uptime
+	c.Assert(binary.Read(reader, t.order, &u64), IsNil)
+	c.Check(u64, Equals, uint64(1))
+
+	// Downtime
+	c.Assert(binary.Read(reader, t.order, &u64), IsNil)
+	c.Check(u64, Equals, uint64(2))
+}
+
+func (t *TestSuite) TestDeviceStateInfo_UnmarshalPacket(c *C) {
+	buf := &bytes.Buffer{}
+
+	c.Assert(binary.Write(buf, t.order, uint64(84)), IsNil) // Time
+	c.Assert(binary.Write(buf, t.order, uint64(10)), IsNil) // Uptime
+	c.Assert(binary.Write(buf, t.order, uint64(42)), IsNil) // Downtime
+
+	dsi := &DeviceStateInfo{}
+
+	c.Assert(dsi.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order), IsNil)
+	c.Check(dsi.Time, Equals, uint64(84))
+	c.Check(dsi.Uptime, Equals, uint64(10))
+	c.Check(dsi.Downtime, Equals, uint64(42))
+}
+
+func (t *TestSuite) TestDeviceStateLocation_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u64 uint64
+	var u8 uint8
+
+	var location [16]byte
+
+	for i := 0; i < len(location); i++ {
+		location[i] = uint8(i + 200)
+	}
+
+	label := make([]byte, 32)
+
+	for i := 0; i < len(label); i++ {
+		label[i] = uint8(i + 100)
+	}
+	dsl := &DeviceStateLocation{
+		Location:  location,
+		Label:     NewDeviceLabelTrunc(label),
+		UpdatedAt: 42,
+	}
+
+	packet, err = dsl.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Location
+	for i := 0; i < 16; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+200))
+	}
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+100))
+	}
+
+	// UpdatedAt
+	c.Assert(binary.Read(reader, t.order, &u64), IsNil)
+	c.Check(u64, Equals, uint64(42))
+}
+
+func (t *TestSuite) TestDeviceStateLocation_UnmarshalPacket(c *C) {
+	var err error
+	buf := &bytes.Buffer{}
+
+	// Location
+	for i := 0; i < 16; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+200)), IsNil)
+	}
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+100)), IsNil)
+	}
+
+	// UpdatedAt
+	c.Assert(binary.Write(buf, t.order, uint64(84)), IsNil)
+
+	dsl := &DeviceStateLocation{}
+
+	err = dsl.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
+	c.Assert(err, IsNil)
+	c.Check(dsl.UpdatedAt, Equals, uint64(84))
+
+	for i := 0; i < 16; i++ {
+		c.Check(dsl.Location[i], Equals, uint8(i+200))
+	}
+
+	for i := 0; i < 32; i++ {
+		c.Check(dsl.Label[i], Equals, uint8(i+100))
+	}
+}
+
+func (t *TestSuite) TestDeviceStateGroup_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u64 uint64
+	var u8 uint8
+
+	var group [16]byte
+
+	for i := 0; i < len(group); i++ {
+		group[i] = uint8(i + 200)
+	}
+
+	label := make([]byte, 32)
+
+	for i := 0; i < len(label); i++ {
+		label[i] = uint8(i + 100)
+	}
+	dsg := &DeviceStateGroup{
+		Group:     group,
+		Label:     NewDeviceLabelTrunc(label),
+		UpdatedAt: 42,
+	}
+
+	packet, err = dsg.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Location
+	for i := 0; i < 16; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+200))
+	}
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+100))
+	}
+
+	// UpdatedAt
+	c.Assert(binary.Read(reader, t.order, &u64), IsNil)
+	c.Check(u64, Equals, uint64(42))
+}
+
+func (t *TestSuite) TestDeviceStateGroup_UnmarshalPacket(c *C) {
+	var err error
+	buf := &bytes.Buffer{}
+
+	// Location
+	for i := 0; i < 16; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+200)), IsNil)
+	}
+
+	// Label
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+100)), IsNil)
+	}
+
+	// UpdatedAt
+	c.Assert(binary.Write(buf, t.order, uint64(84)), IsNil)
+
+	dsg := &DeviceStateGroup{}
+
+	err = dsg.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
+	c.Assert(err, IsNil)
+	c.Check(dsg.UpdatedAt, Equals, uint64(84))
+
+	for i := 0; i < 16; i++ {
+		c.Check(dsg.Group[i], Equals, uint8(i+200))
+	}
+
+	for i := 0; i < 32; i++ {
+		c.Check(dsg.Label[i], Equals, uint8(i+100))
+	}
+}
+
+func (t *TestSuite) TestDeviceEcho_MarshalPacket(c *C) {
+	var packet []byte
+	var err error
+	var u8 uint8
+
+	payload := make([]byte, 64)
+
+	for i := 0; i < len(payload); i++ {
+		payload[i] = uint8(i + 100)
+	}
+
+	de := &DeviceEcho{Payload: NewDeviceEchoPayloadTrunc(payload)}
+
+	packet, err = de.MarshalPacket(t.order)
+	c.Assert(err, IsNil)
+	c.Assert(packet, NotNil)
+
+	reader := bytes.NewReader(packet)
+
+	// Payload
+	for i := 0; i < 32; i++ {
+		c.Assert(binary.Read(reader, t.order, &u8), IsNil)
+		c.Check(u8, Equals, uint8(i+100))
+	}
+
+}
+
+func (t *TestSuite) TestDeviceEcho_UnmarshalPacket(c *C) {
+	var err error
+	buf := &bytes.Buffer{}
+
+	// Payload
+	for i := 0; i < 64; i++ {
+		c.Assert(binary.Write(buf, t.order, uint8(i+100)), IsNil)
+	}
+
+	de := &DeviceEcho{}
+
+	err = de.UnmarshalPacket(bytes.NewReader(buf.Bytes()), t.order)
+	c.Assert(err, IsNil)
+
+	for i := 0; i < 64; i++ {
+		c.Check(de.Payload[i], Equals, uint8(i+100))
+	}
 }
