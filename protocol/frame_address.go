@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+
+	"github.com/theckman/go-lifx/util"
 )
 
 // MaxFrameAddressReserved is the max size of the FrameAddress.Reserved
@@ -69,6 +71,7 @@ type FrameAddress struct {
 
 func NewFrameAddress() *FrameAddress { return &FrameAddress{} }
 
+// MarshalPacket is a function that implements the Marshaler interface.
 func (fra *FrameAddress) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if fra.Reserved > MaxFrameAddressReserved {
 		return nil, ErrFrameAddressReservedOverflow
@@ -85,7 +88,7 @@ func (fra *FrameAddress) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	//    and byte 7 == 0 and byte 8 == 0
 	if len(fra.Target) == 6 ||
 		(len(fra.Target) == 8 && fra.Target[6] == 0 && fra.Target[7] == 0) {
-		u64 = targetSliceToUint(fra.Target)
+		u64 = lifxutil.HardwareAddrToUint64(fra.Target)
 	} else {
 
 	}
@@ -126,14 +129,19 @@ func (fra *FrameAddress) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+// UnmarshalPacket is a function that implements the Unmarshaler interface.
 func (fra *FrameAddress) UnmarshalPacket(data io.Reader, order binary.ByteOrder) error {
+	if fra == nil {
+		fra = &FrameAddress{}
+	}
+
 	var u64 uint64
 
 	if err := binary.Read(data, order, &u64); err != nil {
 		return err
 	}
 
-	fra.Target = uintToTargetSlice(u64)
+	fra.Target = lifxutil.Uint64ToHardwareAddr(u64)
 
 	for i := range fra.ReservedBlock {
 		if err := binary.Read(data, order, &fra.ReservedBlock[i]); err != nil {
@@ -152,24 +160,4 @@ func (fra *FrameAddress) UnmarshalPacket(data io.Reader, order binary.ByteOrder)
 	fra.ResRequired = u8&1 == 1    // get 8th bit and eval if it's true
 
 	return binary.Read(data, order, &fra.Sequence)
-}
-
-func targetSliceToUint(target net.HardwareAddr) uint64 {
-	return uint64(target[0])<<55 |
-		uint64(target[1])<<47 |
-		uint64(target[2])<<39 |
-		uint64(target[3])<<31 |
-		uint64(target[4])<<23 |
-		uint64(target[5])<<15
-}
-
-func uintToTargetSlice(u64 uint64) net.HardwareAddr {
-	hwaddr := make(net.HardwareAddr, 6)
-	hwaddr[0] = byte(u64 >> 55)
-	hwaddr[1] = byte(u64 >> 47)
-	hwaddr[2] = byte(u64 >> 39)
-	hwaddr[3] = byte(u64 >> 31)
-	hwaddr[4] = byte(u64 >> 23)
-	hwaddr[5] = byte(u64 >> 15)
-	return hwaddr
 }

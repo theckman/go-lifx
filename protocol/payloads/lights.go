@@ -41,7 +41,7 @@ type LightHSBK struct {
 	Kelvin uint16
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (hsbk *LightHSBK) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -65,7 +65,7 @@ func (hsbk *LightHSBK) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (hsbk *LightHSBK) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &hsbk.Hue); err != nil {
@@ -105,7 +105,7 @@ func msToDur(ms uint32) time.Duration {
 	return time.Duration(ms) * time.Millisecond
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (lsc *LightSetColor) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if lsc.Color == nil {
@@ -140,7 +140,7 @@ func (lsc *LightSetColor) MarshalPacket(order binary.ByteOrder) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (lsc *LightSetColor) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &lsc.Reserved); err != nil {
@@ -167,7 +167,7 @@ func (lsc *LightSetColor) UnmarshalPacket(data io.Reader, order binary.ByteOrder
 }
 
 // LightState is the struct representing the payload sent by the device
-// to preovide the current light state.
+// to provide the current light state.
 type LightState struct {
 	Color    *LightHSBK
 	Reserved uint16
@@ -181,7 +181,7 @@ type LightState struct {
 	ReservedB uint64
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (ls *LightState) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if ls.Color == nil {
@@ -221,7 +221,7 @@ func (ls *LightState) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (ls *LightState) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if ls.Color == nil {
@@ -263,7 +263,7 @@ type LightSetPower struct {
 	Duration time.Duration
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (lsp *LightSetPower) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	// if the length of the Duration would overflow uint32
@@ -284,7 +284,7 @@ func (lsp *LightSetPower) MarshalPacket(order binary.ByteOrder) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (lsp *LightSetPower) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &lsp.Level); err != nil {
@@ -308,7 +308,7 @@ type LightStatePower struct {
 	Level uint16
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (lsp *LightStatePower) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -320,7 +320,7 @@ func (lsp *LightStatePower) MarshalPacket(order binary.ByteOrder) ([]byte, error
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (lsp *LightStatePower) UnmarshalPacket(data io.Reader, order binary.ByteOrder) error {
 	return binary.Read(data, order, &lsp.Level)

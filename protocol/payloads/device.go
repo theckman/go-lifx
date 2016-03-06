@@ -47,7 +47,7 @@ func NewDeviceLabelTrunc(data []byte) DeviceLabel {
 	return dl
 }
 
-// DeviceEchoPayload is a struct representing the payload for both the
+// DeviceEchoPayload is a type representing the payload for both the
 // EchoRequest and EchoResponse message types.
 type DeviceEchoPayload [64]byte
 
@@ -84,7 +84,7 @@ type DeviceStateService struct {
 	Port uint32
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dss *DeviceStateService) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -100,7 +100,7 @@ func (dss *DeviceStateService) MarshalPacket(order binary.ByteOrder) ([]byte, er
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dss *DeviceStateService) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dss.Service); err != nil {
@@ -129,7 +129,7 @@ type DeviceStateHostInfo struct {
 	Reserved int16
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dshi *DeviceStateHostInfo) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -153,7 +153,7 @@ func (dshi *DeviceStateHostInfo) MarshalPacket(order binary.ByteOrder) ([]byte, 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dshi *DeviceStateHostInfo) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dshi.Signal); err != nil {
@@ -187,7 +187,7 @@ type DeviceStateHostFirmware struct {
 	Version uint32
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dshf *DeviceStateHostFirmware) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -207,7 +207,7 @@ func (dshf *DeviceStateHostFirmware) MarshalPacket(order binary.ByteOrder) ([]by
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dshf *DeviceStateHostFirmware) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dshf.Build); err != nil {
@@ -240,7 +240,7 @@ type DeviceStateWifiInfo struct {
 	Reserved int16
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dswi *DeviceStateWifiInfo) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -264,7 +264,7 @@ func (dswi *DeviceStateWifiInfo) MarshalPacket(order binary.ByteOrder) ([]byte, 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dswi *DeviceStateWifiInfo) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dswi.Signal); err != nil {
@@ -298,7 +298,7 @@ type DeviceStateWifiFirmware struct {
 	Version uint32
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dswf *DeviceStateWifiFirmware) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -318,7 +318,7 @@ func (dswf *DeviceStateWifiFirmware) MarshalPacket(order binary.ByteOrder) ([]by
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dswf *DeviceStateWifiFirmware) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dswf.Build); err != nil {
@@ -343,7 +343,7 @@ type DeviceStatePower struct {
 	Level uint16
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsp *DeviceStatePower) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -355,7 +355,7 @@ func (dsp *DeviceStatePower) MarshalPacket(order binary.ByteOrder) ([]byte, erro
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsp *DeviceStatePower) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	return binary.Read(data, order, &dsp.Level)
@@ -369,7 +369,7 @@ type DeviceStateLabel struct {
 	Label DeviceLabel
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsl *DeviceStateLabel) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -383,7 +383,7 @@ func (dsl *DeviceStateLabel) MarshalPacket(order binary.ByteOrder) ([]byte, erro
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsl *DeviceStateLabel) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	for i := 0; i < len(dsl.Label); i++ {
@@ -407,7 +407,7 @@ type DeviceStateVersion struct {
 	Version uint32
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsv *DeviceStateVersion) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -427,7 +427,7 @@ func (dsv *DeviceStateVersion) MarshalPacket(order binary.ByteOrder) ([]byte, er
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsv *DeviceStateVersion) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dsv.Vendor); err != nil {
@@ -458,7 +458,7 @@ type DeviceStateInfo struct {
 	Downtime uint64
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsi *DeviceStateInfo) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -478,7 +478,7 @@ func (dsi *DeviceStateInfo) MarshalPacket(order binary.ByteOrder) ([]byte, error
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsi *DeviceStateInfo) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	if err = binary.Read(data, order, &dsi.Time); err != nil {
@@ -504,7 +504,7 @@ type DeviceStateLocation struct {
 	UpdatedAt uint64
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsl *DeviceStateLocation) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -528,7 +528,7 @@ func (dsl *DeviceStateLocation) MarshalPacket(order binary.ByteOrder) ([]byte, e
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsl *DeviceStateLocation) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	for i := 0; i < len(dsl.Location); i++ {
@@ -558,7 +558,7 @@ type DeviceStateGroup struct {
 	UpdatedAt uint64
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsg *DeviceStateGroup) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -582,7 +582,7 @@ func (dsg *DeviceStateGroup) MarshalPacket(order binary.ByteOrder) ([]byte, erro
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (dsg *DeviceStateGroup) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	for i := 0; i < len(dsg.Group); i++ {
@@ -610,7 +610,7 @@ type DeviceEcho struct {
 	Payload DeviceEchoPayload
 }
 
-// MarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (de *DeviceEcho) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -624,7 +624,7 @@ func (de *DeviceEcho) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that implements the lifxprotocol.ProtocolComponent
+// UnmarshalPacket is a function that satisfies the lifxprotocol.Unmarshaler
 // interface.
 func (de *DeviceEcho) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
 	for i := 0; i < len(de.Payload); i++ {
