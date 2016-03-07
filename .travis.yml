@@ -1,10 +1,7 @@
 language: go
 go:
   - 1.5.3
-  - 1.6rc2
-matrix:
-  allow_failures:
-    - go: 1.6rc2
+  - 1.6
 script: go test -v ./... -check.vv
 sudo: false
 notifications:

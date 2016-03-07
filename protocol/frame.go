@@ -43,23 +43,31 @@ type Frame struct {
 	// Only uses the low 2 bits
 	Origin uint8
 
-	// Tagged is used to determine the usage of the Frame Address target field
-	// If you are sending a message to all devices (e.g., service discovery) this
-	// value should be true and the FrameAddress target field should be zero
+	// Tagged is a boolean flag that indicates whether the FrameAddress.Target
+	// field is being used to address an individual device or all devices.
+	// For discovery using DeviceGetService, the Tagged field should be set to
+	// true and the FrameAddress.Target should be all zeroes. The device will then
+	// respond with a DeviceStateService message, which will include its own
+	// MAC address in the FrameAddress.Target field. In all subsequent messages
+	// that the client sends to the device, the FrameAddress.Target field should
+	// be set to the device MAC address, and the tagged field should be set to false.
+	//
+	// The only time the Tagged field should be set to true, and the
+	// FrameAddress.Target field should contain all zeros, is for the
+	// DeviceGetService message.
 	Tagged bool
 
 	// Message includes a target address (must be true)
 	Addressable bool
 
-	// Protocol number; must be 1024 -- if set to 0 it will be automatically set
-	// Only uses the low 12 bits
+	// Protocol number; specification indicates this must be 1024
 	Protocol uint16
 
 	// Source identifier: unique value set by the client, used by responses
 	Source uint32
 }
 
-// NewFrame is a function for returning a *Frame with sane (protocol compliant) default set.
+// NewFrame is a function for returning a *Frame with some sane defaults.
 func NewFrame() *Frame {
 	return &Frame{
 		Origin:      0,
@@ -68,10 +76,7 @@ func NewFrame() *Frame {
 	}
 }
 
-// MarshalPacket is a function that satisfies the ProtocolComponent interface. It takes the
-// fields of the Frame struct and renders them to a byte slice for use in a UDP packet. The
-// order parameter can either be binary.LittleEndian or binary.BigEndian. The LIFX protocol
-// uses little-endian encoding at the time of writing.
+// MarshalPacket is a function that satisfies the Marshaler interface.
 func (frame *Frame) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if frame.Origin > MaxFrameOrigin {
 		return nil, ErrFrameOriginOverflow
@@ -125,9 +130,12 @@ func (frame *Frame) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket takes an io.Reader and pulls unmarshals the packet in to the Frame
-// struct fields. It uses the order parameter to correctly unpack the values.
+// UnmarshalPacket is a function that satisfies the Unmarshaler interface.
 func (frame *Frame) UnmarshalPacket(data io.Reader, order binary.ByteOrder) error {
+	if frame == nil {
+		frame = &Frame{}
+	}
+
 	if err := binary.Read(data, order, &frame.Size); err != nil {
 		return err
 	}

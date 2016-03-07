@@ -68,7 +68,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	//
 	frame = &Frame{
 		Size:        10,
-		Origin:      0,
+		Origin:      3,
 		Tagged:      false,
 		Addressable: true,
 		Protocol:    4095,
@@ -90,7 +90,7 @@ func (t *TestSuite) TestFrame_MarshalPacket(c *C) {
 	// Read the middle fields that are joined together
 	err = binary.Read(reader, t.order, &u16)
 	c.Assert(err, IsNil)
-	c.Check(uint8(u16>>14), Equals, uint8(0)) // Origin
+	c.Check(uint8(u16>>14), Equals, uint8(3)) // Origin
 	c.Check(u16>>13&1, Equals, uint16(0))     // Tagged
 	c.Check(u16>>12&1, Equals, uint16(1))     // Addressable
 	c.Check(u16<<4>>4, Equals, uint16(4095))  // Protocol

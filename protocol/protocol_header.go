@@ -72,6 +72,7 @@ type ProtocolHeader struct {
 	ReservedEnd uint16
 }
 
+// MarshalPacket is a function that implements the Marshaler interface.
 func (ph *ProtocolHeader) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
 
@@ -93,11 +94,15 @@ func (ph *ProtocolHeader) MarshalPacket(order binary.ByteOrder) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-// UnmarshalPacket is a function that satisfies the ProtocolComponent interface.
+// UnmarshalPacket is a function that satisfies the Unmarshaler interface.
 // It takes an io.Reader and pulls unmarshals the packet in to the
 // ProtocolHeader struct fields. It uses the order parameter to correctly
 // unpack the values.
 func (ph *ProtocolHeader) UnmarshalPacket(data io.Reader, order binary.ByteOrder) (err error) {
+	if ph == nil {
+		ph = &ProtocolHeader{}
+	}
+
 	if err = binary.Read(data, order, &ph.Reserved); err != nil {
 		return
 	}
