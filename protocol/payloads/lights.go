@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 	"time"
 )
@@ -39,6 +40,24 @@ type LightHSBK struct {
 	// Kevin is the color temperature of the light. The lower the warmer
 	// (2500) the higher the cooler (9000).
 	Kelvin uint16
+}
+
+func (hsbk *LightHSBK) String() string {
+	if hsbk == nil {
+		return "<*lifxpayloads.LightHSBK(nil)>"
+	}
+
+	// scale hue value to 0-359
+	hue := colorRange(float64(hsbk.Hue))
+
+	// scale saturation and brightness values to 0-100
+	sat := percentageRange(float64(hsbk.Saturation))
+	bri := percentageRange(float64(hsbk.Brightness))
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.LightHSBK(%p): Hue: %d (%d°), Saturation: %d (%d%%), Brightness: %d (%d%%), Kelvin: %d>",
+		hsbk, hsbk.Hue, hue, hsbk.Saturation, sat, hsbk.Brightness, bri, hsbk.Kelvin,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -97,12 +116,23 @@ type LightSetColor struct {
 	Duration time.Duration
 }
 
-func durToMs(dur time.Duration) uint32 {
-	return uint32(dur / time.Millisecond)
-}
+func (lsc *LightSetColor) String() string {
+	if lsc == nil {
+		return "<*lifxpayloads.LightSetColor(nil)>"
+	}
 
-func msToDur(ms uint32) time.Duration {
-	return time.Duration(ms) * time.Millisecond
+	var color string
+
+	if lsc.Color != nil {
+		color = lsc.Color.String()
+	} else {
+		color = "<nil>"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.LightSetColor(%p): Color: %s, Duration: %s>",
+		lsc, color, lsc.Duration,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -179,6 +209,35 @@ type LightState struct {
 	Label DeviceLabel
 
 	ReservedB uint64
+}
+
+func (ls *LightState) String() string {
+	if ls == nil {
+		return "<*lifxpayloads.LightState(nil)>"
+	}
+
+	var color string
+
+	if ls.Color != nil {
+		color = ls.Color.String()
+	} else {
+		color = "<nil>"
+	}
+
+	var power string
+
+	if ls.Power == 0 {
+		power = "OFF"
+	} else if ls.Power == 65535 {
+		power = "ON"
+	}
+
+	label := string(bytes.Trim(ls.Label[0:], "\x00"))
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.LightState(%p): Color: %s, Power: %d (%s), Label: \"%s\">",
+		ls, color, ls.Power, power, label,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -263,6 +322,25 @@ type LightSetPower struct {
 	Duration time.Duration
 }
 
+func (lsp *LightSetPower) String() string {
+	if lsp == nil { // LumpySpacePrincess
+		return "<*lifxpayloads.LightSetPower(nil)>"
+	}
+
+	var level string
+
+	if lsp.Level == 0 {
+		level = "OFF"
+	} else if lsp.Level == 65535 {
+		level = "ON"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.LightSetPower(%p): Level: %d (%s), Duration: %s>",
+		lsp, lsp.Level, level, lsp.Duration,
+	)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (lsp *LightSetPower) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -306,6 +384,25 @@ func (lsp *LightSetPower) UnmarshalPacket(data io.Reader, order binary.ByteOrder
 // to provide the current power level.
 type LightStatePower struct {
 	Level uint16
+}
+
+func (lsp *LightStatePower) String() string {
+	if lsp == nil { // LumpySpacePrincess
+		return "<*lifxpayloads.LightStatePower(nil)>"
+	}
+
+	var level string
+
+	if lsp.Level == 0 {
+		level = "OFF"
+	} else if lsp.Level == 65535 {
+		level = "ON"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.LightStatePower(%p): Level: %d (%s)>",
+		lsp, lsp.Level, level,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler

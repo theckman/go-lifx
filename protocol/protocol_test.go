@@ -50,6 +50,50 @@ func (t *TestSuite) SetUpSuite(c *C) {
 	t.source = uint32(rand.Int63n(int64(MaxUint32)))
 }
 
+func (*TestSuite) TestPacket_String(c *C) {
+	var str string
+
+	header := &Header{
+		Frame: &Frame{
+			Origin:      3,
+			Tagged:      true,
+			Addressable: true,
+			Protocol:    1024,
+			Source:      42,
+		},
+		FrameAddress: &FrameAddress{
+			Target:      []byte{1, 2, 3, 4, 5, 6},
+			AckRequired: true,
+			ResRequired: true,
+			Sequence:    128,
+		},
+		ProtocolHeader: &ProtocolHeader{Type: DeviceEchoResponse},
+	}
+
+	var pl [64]byte
+
+	for i, chr := range "test echo message" {
+		pl[i] = byte(chr)
+	}
+
+	payload := &lifxpayloads.DeviceEcho{
+		Payload: pl,
+	}
+
+	p := &Packet{
+		Header:  header,
+		Payload: payload,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxprotocol.Packet(%p): Header: %s, Payload: %s>",
+		p, header, payload,
+	)
+
+	str = p.String()
+	c.Check(str, Equals, exp)
+}
+
 func (t *TestSuite) TestPacket_MarshalPacket(c *C) {
 	var packet []byte
 	var err error

@@ -7,9 +7,47 @@ package lifxprotocol
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	. "gopkg.in/check.v1"
 )
+
+func (*TestSuite) Test_phTypeToString(c *C) {
+	c.Check(phTypetoString(DeviceGetService), Equals, "lifxprotocol.DeviceGetService")
+	c.Check(phTypetoString(DeviceStateService), Equals, "lifxprotocol.DeviceStateService")
+	c.Check(phTypetoString(DeviceGetHostInfo), Equals, "lifxprotocol.DeviceGetHostInfo")
+	c.Check(phTypetoString(DeviceStateHostInfo), Equals, "lifxprotocol.DeviceStateHostInfo")
+	c.Check(phTypetoString(DeviceGetHostFirmware), Equals, "lifxprotocol.DeviceGetHostFirmware")
+	c.Check(phTypetoString(DeviceStateHostFirmware), Equals, "lifxprotocol.DeviceStateHostFirmware")
+	c.Check(phTypetoString(DeviceGetWifiInfo), Equals, "lifxprotocol.DeviceGetWifiInfo")
+	c.Check(phTypetoString(DeviceStateWifiInfo), Equals, "lifxprotocol.DeviceStateWifiInfo")
+	c.Check(phTypetoString(DeviceGetWifiFirmware), Equals, "lifxprotocol.DeviceGetWifiFirmware")
+	c.Check(phTypetoString(DeviceStateWifiFirmware), Equals, "lifxprotocol.DeviceStateWifiFirmware")
+	c.Check(phTypetoString(DeviceGetPower), Equals, "lifxprotocol.DeviceGetPower")
+	c.Check(phTypetoString(DeviceSetPower), Equals, "lifxprotocol.DeviceSetPower")
+	c.Check(phTypetoString(DeviceStatePower), Equals, "lifxprotocol.DeviceStatePower")
+	c.Check(phTypetoString(DeviceGetLabel), Equals, "lifxprotocol.DeviceGetLabel")
+	c.Check(phTypetoString(DeviceSetLabel), Equals, "lifxprotocol.DeviceSetLabel")
+	c.Check(phTypetoString(DeviceStateLabel), Equals, "lifxprotocol.DeviceStateLabel")
+	c.Check(phTypetoString(DeviceGetVersion), Equals, "lifxprotocol.DeviceGetVersion")
+	c.Check(phTypetoString(DeviceStateVersion), Equals, "lifxprotocol.DeviceStateVersion")
+	c.Check(phTypetoString(DeviceGetInfo), Equals, "lifxprotocol.DeviceGetInfo")
+	c.Check(phTypetoString(DeviceStateInfo), Equals, "lifxprotocol.DeviceStateInfo")
+	c.Check(phTypetoString(DeviceAcknowledgement), Equals, "lifxprotocol.DeviceAcknowledgement")
+	c.Check(phTypetoString(DeviceGetLocation), Equals, "lifxprotocol.DeviceGetLocation")
+	c.Check(phTypetoString(DeviceStateLocation), Equals, "lifxprotocol.DeviceStateLocation")
+	c.Check(phTypetoString(DeviceGetGroup), Equals, "lifxprotocol.DeviceGetGroup")
+	c.Check(phTypetoString(DeviceStateGroup), Equals, "lifxprotocol.DeviceStateGroup")
+	c.Check(phTypetoString(DeviceEchoRequest), Equals, "lifxprotocol.DeviceEchoRequest")
+	c.Check(phTypetoString(DeviceEchoResponse), Equals, "lifxprotocol.DeviceEchoResponse")
+	c.Check(phTypetoString(LightGet), Equals, "lifxprotocol.LightGet")
+	c.Check(phTypetoString(LightSetColor), Equals, "lifxprotocol.LightSetColor")
+	c.Check(phTypetoString(LightState), Equals, "lifxprotocol.LightState")
+	c.Check(phTypetoString(LightGetPower), Equals, "lifxprotocol.LightGetPower")
+	c.Check(phTypetoString(LightSetPower), Equals, "lifxprotocol.LightSetPower")
+	c.Check(phTypetoString(LightStatePower), Equals, "lifxprotocol.LightStatePower")
+	c.Check(phTypetoString(^uint16(0)), Equals, "UnknownType")
+}
 
 func (t *TestSuite) TestProtocolHeaderDeviceTypes(c *C) {
 	c.Check(DeviceGetService, Equals, uint16(2))
@@ -48,6 +86,20 @@ func (t *TestSuite) TestProtocolHeaderLightTypes(c *C) {
 	c.Check(LightGetPower, Equals, uint16(116))
 	c.Check(LightSetPower, Equals, uint16(117))
 	c.Check(LightStatePower, Equals, uint16(118))
+}
+
+func (*TestSuite) TestProtocolHeader_String(c *C) {
+	var str string
+
+	ph := &ProtocolHeader{Type: 2}
+
+	exp := fmt.Sprintf(
+		"<*lifxprotocol.ProtocolHeader(%p): Type: 2 (lifxprotocol.DeviceGetService)>",
+		ph,
+	)
+
+	str = ph.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestProtocolHeader_MarshalPacket(c *C) {

@@ -7,9 +7,46 @@ package lifxprotocol
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	. "gopkg.in/check.v1"
 )
+
+func (*TestSuite) TestHeader_String(c *C) {
+	var str string
+
+	frame := &Frame{
+		Size:        8,
+		Origin:      2,
+		Tagged:      true,
+		Addressable: false,
+		Protocol:    1024,
+		Source:      42,
+	}
+
+	fraddr := &FrameAddress{
+		Target:      []byte{1, 2, 3, 4, 5, 6},
+		AckRequired: false,
+		ResRequired: true,
+		Sequence:    42,
+	}
+
+	ph := &ProtocolHeader{Type: 2}
+
+	header := &Header{
+		Frame:          frame,
+		FrameAddress:   fraddr,
+		ProtocolHeader: ph,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxprotocol.Header(%p): Frame: %s, FrameAddress: %s, ProtocolHeader: %s>",
+		header, frame, fraddr, ph,
+	)
+
+	str = header.String()
+	c.Check(str, Equals, exp)
+}
 
 func (t *TestSuite) TestHeader_MarshalPacket(c *C) {
 	var packet []byte
