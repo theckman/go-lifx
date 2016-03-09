@@ -71,6 +71,21 @@ type FrameAddress struct {
 
 func NewFrameAddress() *FrameAddress { return &FrameAddress{} }
 
+func (fra *FrameAddress) String() string {
+	if fra == nil {
+		return "<*lifxprotocol.FrameAddress(nil)>"
+	}
+
+	if fra.Target == nil {
+		fra.Target = make(net.HardwareAddr, 6)
+	}
+
+	return fmt.Sprintf(
+		"<*lifxprotocol.FrameAddress(%p): Target: %s, AckRequired: %t, ResRequired: %t, Sequence: %d>",
+		fra, fra.Target, fra.AckRequired, fra.ResRequired, fra.Sequence,
+	)
+}
+
 // MarshalPacket is a function that implements the Marshaler interface.
 func (fra *FrameAddress) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if fra.Reserved > MaxFrameAddressReserved {

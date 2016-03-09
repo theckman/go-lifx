@@ -7,6 +7,7 @@ package lifxprotocol
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	. "gopkg.in/check.v1"
 )
@@ -18,6 +19,27 @@ func (t *TestSuite) Test_NewFrame(c *C) {
 	c.Check(f.Origin, Equals, uint8(0))
 	c.Check(f.Addressable, Equals, true)
 	c.Check(f.Protocol, Equals, uint16(1024))
+}
+
+func (*TestSuite) TestFrame_String(c *C) {
+	var str string
+
+	frame := &Frame{
+		Size:        42,
+		Origin:      3,
+		Tagged:      true,
+		Addressable: true,
+		Protocol:    1024,
+		Source:      4242, // 0x1092
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxprotocol.Frame(%p) Origin: 3, Tagged: true, Addressable: true, Protocol: 1024, Source: 0x1092>",
+		frame,
+	)
+
+	str = frame.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestFrame_MarshalPacket(c *C) {

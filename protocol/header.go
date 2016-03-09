@@ -7,6 +7,7 @@ package lifxprotocol
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
 )
 
@@ -27,6 +28,37 @@ type Header struct {
 	// ProtocolHeader is the component that contains information about
 	// the payload. It's recommended to use a *ProtocolHeader struct.
 	ProtocolHeader *ProtocolHeader
+}
+
+func (h *Header) String() string {
+	if h == nil {
+		return "<*lifxprotocol.Header(nil)>"
+	}
+
+	var fraString, fraddrString, phString string
+
+	if h.Frame == nil {
+		fraString = "<nil>"
+	} else {
+		fraString = h.Frame.String()
+	}
+
+	if h.FrameAddress == nil {
+		fraddrString = "<nil>"
+	} else {
+		fraddrString = h.FrameAddress.String()
+	}
+
+	if h.ProtocolHeader == nil {
+		phString = "<nil>"
+	} else {
+		phString = h.ProtocolHeader.String()
+	}
+
+	return fmt.Sprintf(
+		"<*lifxprotocol.Header(%p): Frame: %s, FrameAddress: %s, ProtocolHeader: %s>",
+		h, fraString, fraddrString, phString,
+	)
 }
 
 // MarshalPacket is a function that implements the Marshaler interface.

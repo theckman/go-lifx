@@ -8,7 +8,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"io"
+	"strconv"
+	"time"
 )
 
 // DeviceLabel is the type corresponding to how the name of a device (the label)
@@ -53,17 +56,17 @@ type DeviceEchoPayload [64]byte
 
 // NewDeviceEchoPayloadTrunc takes a byte slice and returns the corresponding
 // DeviceEchoPayload.
-func NewDeviceEchoPayloadTrunc(data []byte) DeviceEchoPayload {
+func NewDeviceEchoPayloadTrunc(payload []byte) DeviceEchoPayload {
 	var dep DeviceEchoPayload
 
-	loops := len(data)
+	loops := len(payload)
 
-	if loops > len(dep) {
-		loops = len(dep)
+	if depLen := len(dep); loops > depLen {
+		loops = depLen
 	}
 
 	for i := 0; i < loops; i++ {
-		dep[i] = data[i]
+		dep[i] = payload[i]
 	}
 
 	return dep
@@ -82,6 +85,14 @@ type DeviceStateService struct {
 	// compatibility reasons it's recommended that clients bind to port
 	// 56700.
 	Port uint32
+}
+
+func (dss *DeviceStateService) String() string {
+	if dss == nil {
+		return "<*lifxpayloads.DeviceStateService(nil)>"
+	}
+
+	return fmt.Sprintf("<*lifxpayloads.DeviceStateService(%p): Service: %d, Port: %d>", dss, dss.Service, dss.Port)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -127,6 +138,19 @@ type DeviceStateHostInfo struct {
 	Rx uint32
 
 	Reserved int16
+}
+
+func (dshi *DeviceStateHostInfo) String() string {
+	if dshi == nil {
+		return "<*lifxpayloads.DeviceStateHostInfo(nil)>"
+	}
+
+	sigFloatStr := strconv.FormatFloat(float64(dshi.Signal), 'f', -1, 64)
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateHostInfo(%p): Signal: %s, Tx: %d, Rx: %d>",
+		dshi, sigFloatStr, dshi.Tx, dshi.Rx,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -187,6 +211,28 @@ type DeviceStateHostFirmware struct {
 	Version uint32
 }
 
+func (dshf *DeviceStateHostFirmware) String() string {
+	if dshf == nil {
+		return "<*lifxpayloads.DeviceStateHostFirmware(nil)>"
+	}
+
+	var build time.Time
+
+	// convert the Build value to a timestamp
+	epoch := int64(time.Duration(dshf.Build) / time.Second)
+	npoch := int64(time.Duration(dshf.Build) % time.Second)
+
+	// if the value isn't zero, we need to parse it
+	if epoch != 0 {
+		build = time.Unix(epoch, npoch).UTC()
+	}
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateHostFirmware(%p): Build: %s, Version: %d>",
+		dshf, build.String(), dshf.Version,
+	)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dshf *DeviceStateHostFirmware) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -238,6 +284,19 @@ type DeviceStateWifiInfo struct {
 	Rx uint32
 
 	Reserved int16
+}
+
+func (dswi *DeviceStateWifiInfo) String() string {
+	if dswi == nil {
+		return "<*lifxpayloads.DeviceStateWifiInfo(nil)>"
+	}
+
+	sigFloatStr := strconv.FormatFloat(float64(dswi.Signal), 'f', -1, 64)
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateWifiInfo(%p): Signal: %s, Tx: %d, Rx: %d>",
+		dswi, sigFloatStr, dswi.Tx, dswi.Rx,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -298,6 +357,19 @@ type DeviceStateWifiFirmware struct {
 	Version uint32
 }
 
+func (dswf *DeviceStateWifiFirmware) String() string {
+	if dswf == nil {
+		return "<*lifxpayloads.DeviceStateWifiFirmware(nil)>"
+	}
+
+	build := nsecEpochToTime(dswf.Build)
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateWifiFirmware(%p): Build: %s, Version: %d>",
+		dswf, build, dswf.Version,
+	)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dswf *DeviceStateWifiFirmware) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -343,6 +415,14 @@ type DeviceStatePower struct {
 	Level uint16
 }
 
+func (dsp *DeviceStatePower) String() string {
+	if dsp == nil {
+		return "<*lifxpayloads.DeviceStatePower(nil)>"
+	}
+
+	return fmt.Sprintf("<*lifxpayloads.DeviceStatePower(%p): Level: %d>", dsp, dsp.Level)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsp *DeviceStatePower) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -367,6 +447,18 @@ func (dsp *DeviceStatePower) UnmarshalPacket(data io.Reader, order binary.ByteOr
 // sending a SetLabel message.
 type DeviceStateLabel struct {
 	Label DeviceLabel
+}
+
+// String is a function that implementes the fmt.Stringer interface.
+// This function renders the Label with all null bytes trimmed off the end.
+func (dsl *DeviceStateLabel) String() string {
+	if dsl == nil {
+		return "<*lifxpayloads.DeviceStateLabel(nil)>"
+	}
+
+	label := string(bytes.Trim(dsl.Label[0:], "\x00"))
+
+	return fmt.Sprintf("<*lifxpayloads.DeviceStateLabel(%p): Label: \"%s\">", dsl, label)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -405,6 +497,17 @@ type DeviceStateVersion struct {
 
 	// Version is the hardware version
 	Version uint32
+}
+
+func (dsv *DeviceStateVersion) String() string {
+	if dsv == nil {
+		return "<*lifxpayloads.DeviceStateVersion(nil)>"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateVersion(%p): Vendor: %d, Product: %d, Version: %d>",
+		dsv, dsv.Vendor, dsv.Product, dsv.Version,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -458,6 +561,19 @@ type DeviceStateInfo struct {
 	Downtime uint64
 }
 
+func (dsi *DeviceStateInfo) String() string {
+	if dsi == nil {
+		return "<*lifxpayloads.DeviceStateInfo(nil)>"
+	}
+
+	time := nsecEpochToTime(dsi.Time)
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateInfo(%p): Time: %s, Uptime: %d, Downtime: %d>",
+		dsi, time, dsi.Uptime, dsi.Downtime,
+	)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsi *DeviceStateInfo) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -502,6 +618,20 @@ type DeviceStateLocation struct {
 	Location  [16]byte
 	Label     DeviceLabel
 	UpdatedAt uint64
+}
+
+func (dsl *DeviceStateLocation) String() string {
+	if dsl == nil {
+		return "<*lifxpayloads.DeviceStateLocation(nil)>"
+	}
+
+	loc := string(bytes.Trim(dsl.Location[0:], "\x00"))
+	label := string(bytes.Trim(dsl.Label[0:], "\x00"))
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateLocation(%p): Location: \"%s\", Label: \"%s\", UpdatedAt: %d>",
+		dsl, loc, label, dsl.UpdatedAt,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
@@ -558,6 +688,20 @@ type DeviceStateGroup struct {
 	UpdatedAt uint64
 }
 
+func (dsg *DeviceStateGroup) String() string {
+	if dsg == nil {
+		return "<*lifxpayloads.DeviceStateGroup(nil)>"
+	}
+
+	group := string(bytes.Trim(dsg.Group[0:], "\x00"))
+	label := string(bytes.Trim(dsg.Label[0:], "\x00"))
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceStateGroup(%p): Group: \"%s\", Label: \"%s\", UpdatedAt: %d>",
+		dsg, group, label, dsg.UpdatedAt,
+	)
+}
+
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler
 // interface.
 func (dsg *DeviceStateGroup) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
@@ -608,6 +752,19 @@ func (dsg *DeviceStateGroup) UnmarshalPacket(data io.Reader, order binary.ByteOr
 // and an EchoResponse message.
 type DeviceEcho struct {
 	Payload DeviceEchoPayload
+}
+
+func (de *DeviceEcho) String() string {
+	if de == nil {
+		return "<*lifxpayloads.DeviceEcho(nil)>"
+	}
+
+	payload := string(bytes.Trim(de.Payload[0:], "\x00"))
+
+	return fmt.Sprintf(
+		"<*lifxpayloads.DeviceEcho(%p): Payload: \"%s\">",
+		de, payload,
+	)
 }
 
 // MarshalPacket is a function that satisfies the lifxprotocol.Marshaler

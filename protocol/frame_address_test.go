@@ -7,6 +7,7 @@ package lifxprotocol
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 
 	. "gopkg.in/check.v1"
 )
@@ -15,6 +16,27 @@ func (t *TestSuite) Test_NewFrameAddress(c *C) {
 	var fa *FrameAddress
 	fa = NewFrameAddress()
 	c.Assert(fa, NotNil)
+}
+
+func (*TestSuite) TestFrameAddress_String(c *C) {
+	var str string
+
+	fraddr := &FrameAddress{
+		Target:        []byte{1, 2, 3, 4, 5, 6},
+		ReservedBlock: [6]uint8{0, 0, 0, 0, 0, 0},
+		Reserved:      10,
+		AckRequired:   false,
+		ResRequired:   true,
+		Sequence:      42,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxprotocol.FrameAddress(%p): Target: 01:02:03:04:05:06, AckRequired: false, ResRequired: true, Sequence: 42>",
+		fraddr,
+	)
+
+	str = fraddr.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestFrameAddress_MarshalPacket(c *C) {

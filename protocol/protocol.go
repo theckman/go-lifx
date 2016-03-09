@@ -43,6 +43,7 @@ type Unmarshaler interface {
 type PacketComponent interface {
 	Marshaler
 	Unmarshaler
+	fmt.Stringer
 }
 
 // Packet is the struct for an individual message whether inbound or
@@ -57,6 +58,31 @@ type Packet struct {
 	// based on what is being sent. The recipient knows how to parse this
 	// message based on the value of the Header.ProtocolHeader.Type field.
 	Payload PacketComponent
+}
+
+func (p *Packet) String() string {
+	if p == nil {
+		return "<*lifxprotocol.Packet(nil)>"
+	}
+
+	var hStr, pStr string
+
+	if p.Header == nil {
+		hStr = "<nil>"
+	} else {
+		hStr = p.Header.String()
+	}
+
+	if p.Payload == nil {
+		pStr = "<nil>"
+	} else {
+		pStr = p.Payload.String()
+	}
+
+	return fmt.Sprintf(
+		"<*lifxprotocol.Packet(%p): Header: %s, Payload: %s>",
+		p, hStr, pStr,
+	)
 }
 
 // MarshalPacket is a function that satisfies the Marshaler interface.

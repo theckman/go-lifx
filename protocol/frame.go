@@ -76,6 +76,17 @@ func NewFrame() *Frame {
 	}
 }
 
+func (frame *Frame) String() string {
+	if frame == nil {
+		return "<*lifxprotocol.Frame(nil)>"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxprotocol.Frame(%p) Origin: %d, Tagged: %t, Addressable: %t, Protocol: %d, Source: 0x%x>",
+		frame, frame.Origin, frame.Tagged, frame.Addressable, frame.Protocol, frame.Source,
+	)
+}
+
 // MarshalPacket is a function that satisfies the Marshaler interface.
 func (frame *Frame) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	if frame.Origin > MaxFrameOrigin {

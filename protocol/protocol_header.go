@@ -7,6 +7,7 @@ package lifxprotocol
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"io"
 )
 
@@ -72,6 +73,17 @@ type ProtocolHeader struct {
 	ReservedEnd uint16
 }
 
+func (ph *ProtocolHeader) String() string {
+	if ph == nil {
+		return "<*lifxprotocol.ProtocolHeader(nil)>"
+	}
+
+	return fmt.Sprintf(
+		"<*lifxprotocol.ProtocolHeader(%p): Type: %d (%s)>",
+		ph, ph.Type, phTypetoString(ph.Type),
+	)
+}
+
 // MarshalPacket is a function that implements the Marshaler interface.
 func (ph *ProtocolHeader) MarshalPacket(order binary.ByteOrder) ([]byte, error) {
 	buf := &bytes.Buffer{}
@@ -116,4 +128,81 @@ func (ph *ProtocolHeader) UnmarshalPacket(data io.Reader, order binary.ByteOrder
 	}
 
 	return
+}
+
+func phTypetoString(t uint16) string {
+	var s string
+
+	switch t {
+	case DeviceGetService:
+		s = "DeviceGetService"
+	case DeviceStateService:
+		s = "DeviceStateService"
+	case DeviceGetHostInfo:
+		s = "DeviceGetHostInfo"
+	case DeviceStateHostInfo:
+		s = "DeviceStateHostInfo"
+	case DeviceGetHostFirmware:
+		s = "DeviceGetHostFirmware"
+	case DeviceStateHostFirmware:
+		s = "DeviceStateHostFirmware"
+	case DeviceGetWifiInfo:
+		s = "DeviceGetWifiInfo"
+	case DeviceStateWifiInfo:
+		s = "DeviceStateWifiInfo"
+	case DeviceGetWifiFirmware:
+		s = "DeviceGetWifiFirmware"
+	case DeviceStateWifiFirmware:
+		s = "DeviceStateWifiFirmware"
+	case DeviceGetPower:
+		s = "DeviceGetPower"
+	case DeviceSetPower:
+		s = "DeviceSetPower"
+	case DeviceStatePower:
+		s = "DeviceStatePower"
+	case DeviceGetLabel:
+		s = "DeviceGetLabel"
+	case DeviceSetLabel:
+		s = "DeviceSetLabel"
+	case DeviceStateLabel:
+		s = "DeviceStateLabel"
+	case DeviceGetVersion:
+		s = "DeviceGetVersion"
+	case DeviceStateVersion:
+		s = "DeviceStateVersion"
+	case DeviceGetInfo:
+		s = "DeviceGetInfo"
+	case DeviceStateInfo:
+		s = "DeviceStateInfo"
+	case DeviceAcknowledgement:
+		s = "DeviceAcknowledgement"
+	case DeviceGetLocation:
+		s = "DeviceGetLocation"
+	case DeviceStateLocation:
+		s = "DeviceStateLocation"
+	case DeviceGetGroup:
+		s = "DeviceGetGroup"
+	case DeviceStateGroup:
+		s = "DeviceStateGroup"
+	case DeviceEchoRequest:
+		s = "DeviceEchoRequest"
+	case DeviceEchoResponse:
+		s = "DeviceEchoResponse"
+	case LightGet:
+		s = "LightGet"
+	case LightSetColor:
+		s = "LightSetColor"
+	case LightState:
+		s = "LightState"
+	case LightGetPower:
+		s = "LightGetPower"
+	case LightSetPower:
+		s = "LightSetPower"
+	case LightStatePower:
+		s = "LightStatePower"
+	default:
+		return "UnknownType"
+	}
+
+	return "lifxprotocol." + s
 }

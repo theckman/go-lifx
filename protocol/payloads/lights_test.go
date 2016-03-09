@@ -3,10 +3,30 @@ package lifxpayloads
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"time"
 
 	. "gopkg.in/check.v1"
 )
+
+func (*TestSuite) TestLightHSBK_String(c *C) {
+	var str string
+
+	hsbk := &LightHSBK{
+		Hue:        65535,
+		Saturation: 32768,
+		Brightness: 16384,
+		Kelvin:     2900,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxpayloads.LightHSBK(%p): Hue: 65535 (359°), Saturation: 32768 (50%%), Brightness: 16384 (25%%), Kelvin: 2900>",
+		hsbk,
+	)
+
+	str = hsbk.String()
+	c.Check(str, Equals, exp)
+}
 
 func (t *TestSuite) TestLightHSBK_MarshalPacket(c *C) {
 	var packet []byte
@@ -60,6 +80,30 @@ func (t *TestSuite) TestLightHSBK_UnmarshalPacket(c *C) {
 	c.Check(hsbk.Saturation, Equals, uint16(33))
 	c.Check(hsbk.Brightness, Equals, uint16(44))
 	c.Check(hsbk.Kelvin, Equals, uint16(55))
+}
+
+func (*TestSuite) TestLightSetColor_String(c *C) {
+	var str string
+
+	hsbk := &LightHSBK{
+		Hue:        65535,
+		Saturation: 32768,
+		Brightness: 16384,
+		Kelvin:     2900,
+	}
+
+	lsc := &LightSetColor{
+		Color:    hsbk,
+		Duration: 42 * time.Second,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxpayloads.LightSetColor(%p): Color: %s, Duration: 42s>",
+		lsc, hsbk,
+	)
+
+	str = lsc.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestLightSetColor_MarshalPacket(c *C) {
@@ -141,6 +185,34 @@ func (t *TestSuite) TestLightSetColor_UnmarshalPacket(c *C) {
 	c.Check(lsc.Color.Brightness, Equals, uint16(44))
 	c.Check(lsc.Color.Kelvin, Equals, uint16(55))
 	c.Check(lsc.Duration, Equals, 66*time.Millisecond)
+}
+
+func (*TestSuite) TestLightState_String(c *C) {
+	var str string
+
+	label, err := NewDeviceLabel([]byte("test label"))
+	c.Assert(err, IsNil)
+
+	hsbk := &LightHSBK{
+		Hue:        65535,
+		Saturation: 32768,
+		Brightness: 16384,
+		Kelvin:     2900,
+	}
+
+	ls := &LightState{
+		Color: hsbk,
+		Power: 65535,
+		Label: label,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxpayloads.LightState(%p): Color: %s, Power: 65535 (ON), Label: \"test label\">",
+		ls, hsbk,
+	)
+
+	str = ls.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestLightState_MarshalPacket(c *C) {
@@ -241,6 +313,23 @@ func (t *TestSuite) TestLightState_UnmarshalPacket(c *C) {
 	c.Check(ls.ReservedB, Equals, uint64(77))
 }
 
+func (*TestSuite) TestLightSetPower_String(c *C) {
+	var str string
+
+	lsp := &LightSetPower{
+		Level:    65535,
+		Duration: time.Second * 42,
+	}
+
+	exp := fmt.Sprintf(
+		"<*lifxpayloads.LightSetPower(%p): Level: 65535 (ON), Duration: 42s>",
+		lsp,
+	)
+
+	str = lsp.String()
+	c.Check(str, Equals, exp)
+}
+
 func (t *TestSuite) TestLightSetPower_MarshalPacket(c *C) {
 	var packet []byte
 	var err error
@@ -285,6 +374,20 @@ func (t *TestSuite) TestLightSetPower_UnmarshalPacket(c *C) {
 	c.Assert(err, IsNil)
 	c.Check(lsp.Level, Equals, uint16(4))
 	c.Check(lsp.Duration, Equals, 22*time.Millisecond)
+}
+
+func (*TestSuite) TestLightStatePower_String(c *C) {
+	var str string
+
+	lsp := &LightStatePower{Level: 65535}
+
+	exp := fmt.Sprintf(
+		"<*lifxpayloads.LightStatePower(%p): Level: 65535 (ON)>",
+		lsp,
+	)
+
+	str = lsp.String()
+	c.Check(str, Equals, exp)
 }
 
 func (t *TestSuite) TestLightStatePower_MarshalPacket(c *C) {
